@@ -16,10 +16,10 @@ This project uses the advanced language understanding capabilities of the Gemma 
 ### Installation
 #### Envrionment
 ```
-python setup.py
+pip install -r requirements.txt
 ```
 #### huggingface token
-When train or use demo, need to [HuggingFace Token](https://huggingface.co/settings/token)
+When train or use demo, need to [HuggingFace Token](https://huggingface.co/settings/token) to access model [vvoooo/gemma-2-2b-it-eym-ko](https://huggingface.co/vvoooo/gemma-2-2b-it-eym-ko/)
 
 ### Training
 #### Envrionments
@@ -42,13 +42,17 @@ Check [finetuning_gemma.ipynb](./finetuning_gemma.ipynb)
 - CUDA GPU >= 2.5GB
 
 #### How to Use
+Check [demo.ipynb](./demo.ipynb) in Colab  
+
+or use [demo.py](demo.py)
 ```
 python demo.py
 ```
 
-## Result
-
 
 ## Reference
+- [Gemma-2-2b-it](https://huggingface.co/google/gemma-2-2b-it)
+- [Gemma 한국어 요약 모델 파인튜닝 빠르게 해보기](https://devocean.sk.com/blog/techBoardDetail.do?ID=165703&boardType=techBlog)
+- ["아동·청소년 상담데이터"](https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=115&topMenu=100&aihubDataSe=data&dataSetSn=71680)
 
 This research used datasets from 'The Open AI Dataset Project (AI-Hub, S. Korea)'. All data information can be accessed through 'AI-Hub (www.aihub.or.kr)'.
