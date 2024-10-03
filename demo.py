@@ -1,13 +1,8 @@
-# !pip3 install -q -U transformers
-# !pip3 install -q -U datasets
-# !pip3 install -q -U bitsandbytes
-# !pip3 install -q -U peft
-# !pip3 install -q -U trl
-# !pip3 install -q -U accelerate
-
+import os
+import json
 import argparse
 from datetime import datetime
-
+import random
 from transformers import AutoTokenizer, AutoModelForCausalLM, pipeline, BitsAndBytesConfig, TrainingArguments
 import transformers
 import torch
@@ -17,6 +12,8 @@ from trl import SFTTrainer
 
 CONST_STR_PROGRAM_NAME = "챗봇"
 CONST_STR_GUIDE_MODEL = "google/gemma-2-2b-it"
+CONST_STR_COUNSEL_MODEL = "vvoooo/gemma-2-2b-it-eym-ko"
+CONST_STR_END_MESSAGE = "수고하셨습니다."
 
 CONST_PATH_MODEL = "./model"
 
@@ -63,7 +60,7 @@ def print_log(msg:str):
 
 def parsing_args():
     parser = argparse.ArgumentParser(description='Process some integers.')
-    parser.add_argument('-m', '--model', metavar='N', type=str, default="gemma-2-2b-it-eym-ko",
+    parser.add_argument('-m', '--model', metavar='N', type=str, default=CONST_STR_COUNSEL_MODEL,
                         help='counseling model path')
     parser.add_argument("--debug", action="store_true",
                         help="print debugging messages")
@@ -87,12 +84,66 @@ def get_category(answer):
     
     return None
 
+def conversation(new_chat, counsel_bot):
+    chat = []
+    while new_chat != "///":
+        chat.append({"role":"user", "content":f"{new_chat}"})
+        
+        answer = counsel_bot.ask_answer(chat)
+
+        if CONST_STR_END_MESSAGE in answer:
+            # # v1.0
+            # chat.append({"role":"assistant", "content":f"{answer}"})
+            # end_of_chat = "위 상담 내용을 바탕으로 나에게 공감해주는 말을 해줘. 출력 형식은 [상담 종료: ...]을 사용해"
+            # chat.append({"role":"user", "content":f"{end_of_chat}"})
+            # answer = guide_bot.ask_answer(chat, friendly=True)
+            # answer = answer.split("]")[0].split("[")[1]
+            # print(f"\n{CONST_STR_PROGRAM_NAME}: \n", answer, '\n')
+            
+            # # v2.0
+            # end_of_chat = {"role": "user", "content": f"다음 두 사람의 대화를 듣고 마지막 말에 대한 공감의 대화를 추가해줘. 주제는 {category}이고 대화 내용은 다음과 같아. 대화 내용: {[x['content'] for x in chat]}. 형식은 '공감 내용:'하고 공감 내용을 적어줘"}
+            # answer = guide_bot.ask_answer(end_of_chat, friendly=True)
+            # print(f"\n{CONST_STR_PROGRAM_NAME}: \n", answer, '\n')
+
+            # v3.0
+            print(f"\n{CONST_STR_PROGRAM_NAME}: \n", "그렇구나. 너에 대해서 알아가서 너무 좋아. 다음에도 이야기 하자.", '\n')
+            
+            return chat
+        else:
+            print(f"\n{CONST_STR_PROGRAM_NAME}: \n", answer, '\n')
+            
+        chat.append({"role":"assistant", "content":f"{answer}"})
+
+        print("user: ")
+        new_chat = input()
+        if args.debug:
+            print_log(f"사용자 입력 내용: {new_chat}")
+
+def generate_report(chat, start, end, save:bool=False):
+    report = {
+        "info": {
+            "ID": "0002",
+            "상담시작": start,
+            "상담종료": end,
+            "문항": chat[0]["content"]
+        }, 
+        "text": chat[1:]
+    }
+
+    if save:
+        output_path = "./result"
+        os.mkdir(output_path)
+        with open(os.path.join(output_path, f"counsel_log_{start}.json"), 'w') as json_file:
+            json.dump(report, json_file)
+    
+    return report
+
 def main(args):
     init(args)
 
-    guide_bot = Chatbot(CONST_STR_GUIDE_MODEL)
-    if args.debug:
-        print_log(f"Success to load model: {CONST_STR_GUIDE_MODEL}")
+    # guide_bot = Chatbot(CONST_STR_GUIDE_MODEL)
+    # if args.debug:
+    #     print_log(f"Success to load model: {CONST_STR_GUIDE_MODEL}")
     counsel_bot = Chatbot(args.model)
     if args.debug:
         print_log(f"Success to load model: {args.model}")
@@ -121,56 +172,30 @@ def main(args):
 
     # print("\n" + answer)
 
-    # v2.0
-    print("다음 주제를 보고, 상담 받고 싶은 주제를 선택하세요.")
-    print(f"주제: {CONST_LIST_CATEGORIES}")
-    print(f"예시: {CONST_LIST_CATEGORIES[2]}")
+    # # v2.0
+    # print("다음 주제를 보고, 상담 받고 싶은 주제를 선택하세요.")
+    # print(f"주제: {CONST_LIST_CATEGORIES}")
+    # print(f"예시: {CONST_LIST_CATEGORIES[2]}")
     
-    user_worry = input()
+    # user_worry = input()
 
-    while (user_worry not in CONST_LIST_CATEGORIES):
-        print("알맞는 주제를 찾을 수 없어요. 다음 주제에서 선택해주세요.")
-        print(f"{CONST_LIST_CATEGORIES}")
+    # while (user_worry not in CONST_LIST_CATEGORIES):
+    #     print("알맞는 주제를 찾을 수 없어요. 다음 주제에서 선택해주세요.")
+    #     print(f"{CONST_LIST_CATEGORIES}")
     
-    category = user_worry
+    # category = user_worry
+
+    # v3.0
+    category = CONST_LIST_CATEGORIES[random.randint(0, len(CONST_LIST_CATEGORIES)-1)]
     
-    chat = []
-    
-    new_chat = category
-    while new_chat != "///":
-        chat.append({"role":"user", "content":f"{new_chat}"})
-        
-        answer = counsel_bot.ask_answer(chat)
+    start_time = datetime.now().strftime('%Y.%m.%d - %H:%M:%S')
+    chat = conversation(category, counsel_bot)
+    end_time = datetime.now().strftime('%Y.%m.%d - %H:%M:%S')
 
-        if "수고하셨습니다." in answer:
-            # # v1.0
-            # chat.append({"role":"assistant", "content":f"{answer}"})
-            # end_of_chat = "위 상담 내용을 바탕으로 나에게 공감해주는 말을 해줘. 출력 형식은 [상담 종료: ...]을 사용해"
-            # chat.append({"role":"user", "content":f"{end_of_chat}"})
-            # answer = guide_bot.ask_answer(chat, friendly=True)
-            # answer = answer.split("]")[0].split("[")[1]
-            # print(f"\n{CONST_STR_PROGRAM_NAME}: \n", answer, '\n')
-            
-            # # v2.0
-            # end_of_chat = {"role": "user", "content": f"다음 두 사람의 대화를 듣고 마지막 말에 대한 공감의 대화를 추가해줘. 주제는 {category}이고 대화 내용은 다음과 같아. 대화 내용: {[x['content'] for x in chat]}. 형식은 '공감 내용:'하고 공감 내용을 적어줘"}
-            # answer = guide_bot.ask_answer(end_of_chat, friendly=True)
-            # print(f"\n{CONST_STR_PROGRAM_NAME}: \n", answer, '\n')
-
-            # v3.0
-            print(f"\n{CONST_STR_PROGRAM_NAME}: \n", "그렇구나. 너에 대해서 알아가서 너무 좋아. 다음에도 이야기 하자.", '\n')
-            
-            return
-        else:
-            print(f"\n{CONST_STR_PROGRAM_NAME}: \n", answer, '\n')
-            
-        chat.append({"role":"assistant", "content":f"{answer}"})
-
-        print("user: ")
-        new_chat = input()
-        if args.debug:
-            print_log(f"사용자 입력 내용: {new_chat}")
-
-    return
+    result = generate_report(chat, start_time, end_time, save=True)
+    if args.debug:
+        print_log(result)
+    return result
 
 if __name__ == "__main__":
     args = parsing_args()
