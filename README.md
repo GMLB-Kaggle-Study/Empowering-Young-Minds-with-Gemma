@@ -1,9 +1,9 @@
 # Empowering-Young-Minds-with-Gemma
 
 ## Summary
-This project is a counseling chatbot for a child and adolescent as a result of the Gemma Sprint conducted at the Google ML Bootcamp.
+This project is a chatbot designed to obtain psychological counsel data from children and adolescents, as a result of the Gemma Sprint conducted at the Google ML Bootcamp.
 
-This project uses the advanced language understanding capabilities of the Gemma language model to develop AI for counseling children and adolescents. The AI helps children and adolescents to alleviate worries, psychological stress, and anxieties that they may struggle to communicate with others by providing a safe space to express their thoughts and feelings. By offering emotional support, this AI strives to empower children and adolescents.
+This project uses the advanced language understanding capabilities of the Gemma language model to develop AI for counseling children and adolescents. The AI helps children and adolescents express their thoughts freely without feeling pressure. By providing this support, the AI helps children open up about their worries and thereby gathers counseling data.
 
 ## Background
 ![Current status of youth counseling by content (~2022)](./images/chart160001_1Img.png)
