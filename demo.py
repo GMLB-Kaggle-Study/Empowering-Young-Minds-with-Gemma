@@ -37,7 +37,7 @@ class Chatbot():
             assert t[0] == "<" and t[-1] == ">"
         
         # 커스텀 토큰 정의
-        special_tokens = {'additional_special_tokens': ['<BeginningOfCouncel>', '<NextTheme>']}
+        special_tokens = {'additional_special_tokens': special_tokens}
 
         # 토크나이저에 커스텀 토큰 추가 및 모델 임베딩 크기 조정
         self.tokenizer.add_special_tokens(special_tokens)
@@ -64,6 +64,8 @@ def parsing_args():
                         help='counseling model path')
     parser.add_argument("--debug", action="store_true",
                         help="print debugging messages")
+    parser.add_argument("--report", action="store_true",
+                        help="save report file")
 
     return parser.parse_args()
 
@@ -192,7 +194,7 @@ def main(args):
     chat = conversation(category, counsel_bot)
     end_time = datetime.now().strftime('%Y.%m.%d - %H:%M:%S')
 
-    result = generate_report(chat, start_time, end_time, save=True)
+    result = generate_report(chat, start_time, end_time, args.report)
     if args.debug:
         print_log(result)
     return result
